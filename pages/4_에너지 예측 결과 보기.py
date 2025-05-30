@@ -57,7 +57,7 @@ uploaded_file_direct = st.file_uploader("예측을 위한 CSV 파일 업로드 (
 
 # Google Drive 공유 링크를 통한 파일 불러오기
 st.markdown("또는 👉 **Google Drive 공유 링크 입력**")
-google_drive_url = st.text_input("🔗 Google Drive 공유 CSV 파일 URL", placeholder="https://drive.google.com/file/d/18r04ZNRd_Fz58Ay_g-7uY-6XK5q_P6V6/view?usp=sharing")
+google_drive_url = st.text_input("🔗 Google Drive 공유 CSV 파일 URL", placeholder="/view?usp=sharing")
 
 # 구글 드라이브 공유 링크를 다운로드 가능한 링크로 변환
 def extract_google_drive_file_id(url):
@@ -112,8 +112,12 @@ elif uploaded_file_path_from_session:
     else:
         st.warning("세션의 파일 경로가 유효하지 않습니다. 파일을 직접 업로드해주세요.")
         st.stop()
-elif df_input_data is None:
-    st.info("📂 CSV 파일을 업로드하세요. (이전 페이지 또는 여기서 직접)")
+elif 'df_input_data' in locals() and df_input_data is not None:
+    # Google Drive에서 df_input_data를 불러온 경우에도 실행 계속
+    st.success("✅ Google Drive에서 불러온 데이터 사용 중입니다.")
+    
+else:
+    st.info("📂 CSV 파일을 업로드하거나 Google Drive 링크를 입력하세요.")
     st.stop()
 
 # 파일 처리 (경로 또는 파일 객체)

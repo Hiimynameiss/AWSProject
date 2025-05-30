@@ -153,7 +153,7 @@ if file_to_process or ('df_input_data' in locals() and df_input_data is not None
              except Exception:
                 pass # 삭제 실패해도 계속 진행
 
-if df_input_data is not None:
+if df_input_data in locals() and df_input_data is not None:
     # 데이터 전처리
     if TIME_COLUMN not in df_input_data.columns:
         st.error(f"'{TIME_COLUMN}' 컬럼이 파일에 없습니다. (시간 정보 컬럼)")

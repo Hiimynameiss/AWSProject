@@ -112,7 +112,7 @@ elif uploaded_file_path_from_session:
     else:
         st.warning("세션의 파일 경로가 유효하지 않습니다. 파일을 직접 업로드해주세요.")
         st.stop()
-else:
+elif df_input_data is None:
     st.info("📂 CSV 파일을 업로드하세요. (이전 페이지 또는 여기서 직접)")
     st.stop()
 

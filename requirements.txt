@@ -3,3 +3,5 @@ pandas
 plotly
 numpy
 boto3
+zipfile
+io

@@ -207,7 +207,7 @@ if df_input_data is not None:
                     st.warning("선택한 날짜 범위에 데이터가 없습니다.")
                 else:
                     # 시각화
-                    st.write("### 예측된 전력 소비량")
+                    st.subheader("예측된 전력 소비량")
                     fig1 = go.Figure()
                     fig1.add_trace(go.Scatter(
                         x=filtered_predictions[TIME_COLUMN], 
@@ -222,7 +222,7 @@ if df_input_data is not None:
                     )
                     st.plotly_chart(fig1, use_container_width=True)
 
-                    st.write("### 예측된 전기 요금")
+                    st.subheader("예측된 전기 요금")
                     fig2 = go.Figure()
                     fig2.add_trace(go.Scatter(
                         x=filtered_predictions[TIME_COLUMN], 
@@ -238,7 +238,7 @@ if df_input_data is not None:
                     )
                     st.plotly_chart(fig2, use_container_width=True)
 
-                    st.write("### 예측된 탄소 배출량")
+                    st.subheader("예측된 탄소 배출량")
                     fig3 = go.Figure()
                     fig3.add_trace(go.Scatter(
                         x=filtered_predictions[TIME_COLUMN], 
@@ -255,7 +255,7 @@ if df_input_data is not None:
                     st.plotly_chart(fig3, use_container_width=True)
 
                     # 요약 통계
-                    st.write("### 예측 요약")
+                    st.subheader("예측 요약")
                     col1, col2, col3 = st.columns(3)
                     with col1:
                         st.metric(
@@ -274,7 +274,7 @@ if df_input_data is not None:
                         )
 
                     # MAE 계산
-                    st.write("### 모델 정확도 (MAE)")
+                    st.subheader("모델 정확도 (MAE)")
                     comparison_df = pd.merge(
                         actual_df_for_mae[[TIME_COLUMN, TARGET_COLUMN]],
                         df_predictions[[TIME_COLUMN, 'predicted_activePower']],
@@ -313,7 +313,7 @@ if df_input_data is not None:
                         st.warning("MAE 계산을 위한 데이터 매칭에 실패했습니다.")
 
                     # 결과 데이터표
-                    st.write("### 상세 예측 결과")
+                    st.subheader("상세 예측 결과")
                     st.dataframe(filtered_predictions)
 
 else:

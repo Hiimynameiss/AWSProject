@@ -20,7 +20,7 @@ except Exception as e:
 st.title("🔍 전력 소비량 예측 및 분석")
 
 # --- Configuration ---
-SAGEMAKER_ENDPOINT_NAME = "your-sagemaker-endpoint-name"  # S 실제 SageMaker 엔드포인트 이름으로 변경하세요!
+SAGEMAKER_ENDPOINT_NAME = "tft-endpoint"  # S 실제 SageMaker 엔드포인트 이름으로 변경하세요!
 ELECTRICITY_RATE_KWH = 180  # 원/kWh
 CARBON_COEFFICIENT_KWH = 0.424  # kgCO2/kWh
 TARGET_COLUMN = 'hourly_pow' # 예측 대상 컬럼 (검증용 데이터 셋의 일부.txt 기반 [cite: 2])
@@ -187,7 +187,7 @@ if df_input_data is not None:
     # 사용자의 모델에 맞게 payload를 정확히 구성하는 것이 중요합니다.
 
     if st.button("☁️ SageMaker로 추론 요청하기"):
-        if SAGEMAKER_ENDPOINT_NAME == "your-sagemaker-endpoint-name":
+        if SAGEMAKER_ENDPOINT_NAME == "tft-endpoint":
             st.error("SageMaker 엔드포인트 이름을 설정해주세요 (SAGEMAKER_ENDPOINT_NAME).")
         else:
             with st.spinner("SageMaker 엔드포인트에서 예측을 가져오는 중..."):

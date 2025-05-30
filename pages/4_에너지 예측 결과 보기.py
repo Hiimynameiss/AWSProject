@@ -50,6 +50,9 @@ def save_uploaded_file(directory, file):
 
 # ------------------------
 
+# Initialize df_input_data
+df_input_data = None
+
 # 🔍 이전 페이지에서 업로드한 파일 경로 사용 또는 직접 업로드
 # st.session_state에서 file_path를 가져오거나, 이 페이지에서 직접 업로드하도록 수정
 uploaded_file_path_from_session = st.session_state.get('uploaded_file_path', None)
@@ -86,74 +89,63 @@ if google_drive_url:
     else:
         st.warning("⚠️ 유효한 Google Drive 공유 링크를 입력하세요.")
 
-
-file_to_process = None
-temp_file_path = None # 직접 업로드 시 임시 저장 경로
-
-# if uploaded_file_direct:
-#     # 사용자가 이 페이지에서 직접 파일을 업로드한 경우
-#     current_time_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-#     direct_uploaded_filename = f"direct_upload_{current_time_str}_{uploaded_file_direct.name}"
-#     # save_uploaded_file 함수를 사용하기 위해 파일 객체의 name 속성을 설정
-#     class UploadedFileWithName:
-#         def __init__(self, file_obj, name):
-#             self._file_obj = file_obj
-#             self.name = name
-#         def getbuffer(self):
-#             return self._file_obj.getbuffer()
-
-#     file_to_process = UploadedFileWithName(uploaded_file_direct, direct_uploaded_filename)
-#     temp_file_path = save_uploaded_file("temp_uploads", file_to_process) # 임시 저장
-#     st.success(f"✅ 직접 업로드된 파일 사용: `{file_to_process.name}`")
-# elif uploaded_file_path_from_session:
-#     # 세션 상태에서 파일 경로를 사용하는 경우
-#     if os.path.exists(uploaded_file_path_from_session):
-#         file_to_process = uploaded_file_path_from_session
-#         st.success(f"✅ 세션에서 불러온 파일 사용: `{os.path.basename(file_to_process)}`")
-#     else:
-#         st.warning("세션의 파일 경로가 유효하지 않습니다. 파일을 직접 업로드해주세요.")
-#         st.stop()
-# elif 'df_input_data' in locals() and df_input_data is not None:
-#     # Google Drive에서 df_input_data를 불러온 경우에도 실행 계속
-#     st.success("✅ Google Drive에서 불러온 데이터 사용 중입니다.")
-    
-# else:
-#     st.info("📂 CSV 파일을 업로드하거나 Google Drive 링크를 입력하세요.")
-#     st.stop()
-
-# 파일 처리 (경로 또는 파일 객체)
-if file_to_process or ('df_input_data' in locals() and df_input_data is not None):
+# Handle file upload
+if uploaded_file_direct:
     try:
-        if file_to_process:
-            # file_to_process가 경로 문자열인 경우와 파일 객체인 경우를 모두 처리
-            file_path_for_reading = temp_file_path if temp_file_path else file_to_process
-    
+        # Read CSV with different encodings
+        encodings = ['utf-8', 'utf-8-sig', 'cp949', 'euc-kr']
+        df_temp = None
+        for enc in encodings:
+            try:
+                df_temp = pd.read_csv(uploaded_file_direct, encoding=enc)
+                df_temp.columns = df_temp.columns.str.strip()
+                break
+            except UnicodeDecodeError:
+                continue
+        
+        if df_temp is not None:
+            df_input_data = df_temp
+            st.success("✅ 직접 업로드된 파일을 성공적으로 불러왔습니다.")
+        else:
+            st.error("❌ CSV 파일을 열 수 없습니다. 인코딩 문제입니다.")
+            st.stop()
+    except Exception as e:
+        st.error(f"❌ CSV 파일을 읽는 중 오류 발생: {e}")
+        st.stop()
+
+elif uploaded_file_path_from_session:
+    # 세션 상태에서 파일 경로를 사용하는 경우
+    if os.path.exists(uploaded_file_path_from_session):
+        try:
             encodings = ['utf-8', 'utf-8-sig', 'cp949', 'euc-kr']
-            df_temp = pd.read_csv(file_path_for_reading, encoding=enc)
-            df_temp.columns = df_temp.columns.str.strip()
+            df_temp = None
             for enc in encodings:
                 try:
-                    df_temp = pd.read_csv(file_path_for_reading, encoding=enc)
+                    df_temp = pd.read_csv(uploaded_file_path_from_session, encoding=enc)
+                    df_temp.columns = df_temp.columns.str.strip()
                     break
                 except UnicodeDecodeError:
                     continue
             
-            if df_temp is None:
+            if df_temp is not None:
+                df_input_data = df_temp
+                st.success(f"✅ 세션에서 불러온 파일 사용: `{os.path.basename(uploaded_file_path_from_session)}`")
+            else:
                 st.error("❌ CSV 파일을 열 수 없습니다. 인코딩 문제입니다.")
                 st.stop()
-            df_input_data = df_temp
+        except Exception as e:
+            st.error(f"❌ CSV 파일을 읽는 중 오류 발생: {e}")
+            st.stop()
+    else:
+        st.warning("세션의 파일 경로가 유효하지 않습니다. 파일을 직접 업로드해주세요.")
 
-    except Exception as e:
-        st.error(f"❌ CSV 파일을 읽는 중 오류 발생: {e}")
-        st.stop()
-    finally:
-        if temp_file_path and os.path.exists(temp_file_path): # 임시 파일 삭제
-             try:
-                os.remove(temp_file_path)
-             except Exception:
-                pass # 삭제 실패해도 계속 진행
+# Check if we have data to process
+if df_input_data is None:
+    st.info("📂 CSV 파일을 업로드하거나 Google Drive 링크를 입력하세요.")
+    st.stop()
 
-if df_input_data in locals() and df_input_data is not None:
+# Data processing continues here
+if df_input_data is not None:
     # 데이터 전처리
     if TIME_COLUMN not in df_input_data.columns:
         st.error(f"'{TIME_COLUMN}' 컬럼이 파일에 없습니다. (시간 정보 컬럼)")
@@ -361,7 +353,6 @@ if df_input_data in locals() and df_input_data is not None:
                 fig_error.add_trace(go.Scatter(x=comparison_df[TIME_COLUMN], y=comparison_df[f'predicted_{TARGET_COLUMN}'], mode='lines+markers', name='예측값'))
                 fig_error.update_layout(title='MAE 비교: 실제값 vs. 예측값 (예측 기간)', xaxis_title='시간', yaxis_title=TARGET_COLUMN)
                 st.plotly_chart(fig_error, use_container_width=True)
-
 
         except Exception as e:
             st.error(f"결과 처리 또는 시각화 중 오류 발생: {e}")

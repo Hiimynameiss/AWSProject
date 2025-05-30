@@ -8,7 +8,8 @@ def main():
     st.title("검증용 데이터 셋 정보 요약")
 
     # 👉 로컬 경로 설정
-    file_path = r"C:\Users\Administrator\Desktop\SMWU\aws_project\rtu_ground_truth_may.csv"
+    # file_path = r"C:\Users\Administrator\Desktop\SMWU\aws_project\rtu_ground_truth_may.csv"
+    file_path = "csv/rtu_ground_truth_may.csv"  # 상대 경로
 
     # 👉 인코딩 자동 처리
     encodings = ['utf-8', 'utf-8-sig', 'cp949', 'euc-kr']

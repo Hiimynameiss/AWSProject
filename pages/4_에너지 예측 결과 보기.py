@@ -121,25 +121,25 @@ else:
     st.stop()
 
 # 파일 처리 (경로 또는 파일 객체)
-df_input_data = None
-if file_to_process:
+if file_to_process or ('df_input_data' in locals() and df_input_data is not None):
     try:
-        # file_to_process가 경로 문자열인 경우와 파일 객체인 경우를 모두 처리
-        file_path_for_reading = temp_file_path if temp_file_path else file_to_process
-
-        encodings = ['utf-8', 'utf-8-sig', 'cp949', 'euc-kr']
-        df_temp = None
-        for enc in encodings:
-            try:
-                df_temp = pd.read_csv(file_path_for_reading, encoding=enc)
-                break
-            except UnicodeDecodeError:
-                continue
-        
-        if df_temp is None:
-            st.error("❌ CSV 파일을 열 수 없습니다. 인코딩 문제입니다.")
-            st.stop()
-        df_input_data = df_temp
+        if file_to_process:
+            # file_to_process가 경로 문자열인 경우와 파일 객체인 경우를 모두 처리
+            file_path_for_reading = temp_file_path if temp_file_path else file_to_process
+    
+            encodings = ['utf-8', 'utf-8-sig', 'cp949', 'euc-kr']
+            df_temp = None
+            for enc in encodings:
+                try:
+                    df_temp = pd.read_csv(file_path_for_reading, encoding=enc)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            
+            if df_temp is None:
+                st.error("❌ CSV 파일을 열 수 없습니다. 인코딩 문제입니다.")
+                st.stop()
+            df_input_data = df_temp
 
     except Exception as e:
         st.error(f"❌ CSV 파일을 읽는 중 오류 발생: {e}")

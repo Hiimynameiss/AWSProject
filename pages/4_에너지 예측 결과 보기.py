@@ -24,7 +24,7 @@ SAGEMAKER_ENDPOINT_NAME = "tft-endpoint"  # S 실제 SageMaker 엔드포인트 �
 ELECTRICITY_RATE_KWH = 180  # 원/kWh
 CARBON_COEFFICIENT_KWH = 0.424  # kgCO2/kWh
 TARGET_COLUMN = 'activePower' # 예측 대상 컬럼 (검증용 데이터 셋의 일부.txt 기반 [cite: 2])
-TIME_COLUMN = 'timestamp'           # 시간 컬럼 (검증용 데이터 셋의 일부.txt 기반 [cite: 2])
+TIME_COLUMN = ' timestamp'           # 시간 컬럼 (검증용 데이터 셋의 일부.txt 기반 [cite: 2])
 
 # 추론 요청 함수
 def invoke_sagemaker_endpoint(endpoint_name, payload_data):

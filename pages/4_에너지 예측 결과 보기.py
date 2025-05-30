@@ -55,6 +55,37 @@ def save_uploaded_file(directory, file):
 uploaded_file_path_from_session = st.session_state.get('uploaded_file_path', None)
 uploaded_file_direct = st.file_uploader("예측을 위한 CSV 파일 업로드 (세션에 파일이 없는 경우)", type=['csv'])
 
+# Google Drive 공유 링크를 통한 파일 불러오기
+st.markdown("또는 👉 **Google Drive 공유 링크 입력**")
+google_drive_url = st.text_input("🔗 Google Drive 공유 CSV 파일 URL", placeholder="https://drive.google.com/file/d/18r04ZNRd_Fz58Ay_g-7uY-6XK5q_P6V6/view?usp=sharing")
+
+# 구글 드라이브 공유 링크를 다운로드 가능한 링크로 변환
+def extract_google_drive_file_id(url):
+    if "drive.google.com" in url:
+        if "/file/d/" in url:
+            return url.split("/file/d/")[1].split("/")[0]
+        elif "id=" in url:
+            return url.split("id=")[1]
+    return None
+
+def get_direct_download_url(file_id):
+    return f"https://drive.google.com/uc?export=download&id={file_id}"
+
+file_to_process = None
+if google_drive_url:
+    file_id = extract_google_drive_file_id(google_drive_url)
+    if file_id:
+        direct_url = get_direct_download_url(file_id)
+        try:
+            df_input_data = pd.read_csv(direct_url)
+            st.success("✅ Google Drive 파일에서 데이터를 성공적으로 불러왔습니다.")
+        except Exception as e:
+            st.error(f"❌ Google Drive에서 파일을 불러오는 데 실패했습니다: {e}")
+            st.stop()
+    else:
+        st.warning("⚠️ 유효한 Google Drive 공유 링크를 입력하세요.")
+
+
 file_to_process = None
 temp_file_path = None # 직접 업로드 시 임시 저장 경로
 

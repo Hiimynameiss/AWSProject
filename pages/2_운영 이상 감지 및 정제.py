@@ -90,15 +90,50 @@ if uploaded_file is not None:
                     
                     # ZIP 내부 CSV 파일 읽기
                     with zip_ref.open(selected_csv) as csv_file:
-                        df_cleaned = pd.read_csv(csv_file, parse_dates=["timestamp"])
+                        # CSV 내용을 메모리로 읽어오기
+                        csv_content = csv_file.read()
+                        csv_io = io.StringIO(csv_content.decode('utf-8'))
+                        
+                        # 먼저 컬럼명 확인
+                        temp_df = pd.read_csv(csv_io, nrows=0)
+                        csv_io.seek(0)  # StringIO는 seek가 가능
+                        
+                        # timestamp 관련 컬럼 찾기 (localtime 포함)
+                        timestamp_cols = [col for col in temp_df.columns if 'time' in col.lower() or 'date' in col.lower()]
+                        
+                        if timestamp_cols:
+                            df_cleaned = pd.read_csv(csv_io, parse_dates=timestamp_cols)
+                            # timestamp 컬럼이 없으면 첫 번째 시간 관련 컬럼을 timestamp로 rename
+                            if 'timestamp' not in df_cleaned.columns and timestamp_cols:
+                                df_cleaned = df_cleaned.rename(columns={timestamp_cols[0]: 'timestamp'})
+                                st.info(f"✅ '{timestamp_cols[0]}' 컬럼을 'timestamp'로 변경했습니다.")
+                        else:
+                            df_cleaned = pd.read_csv(csv_io)
+                            st.warning("⚠️ 시간 관련 컬럼을 찾을 수 없습니다. 시간 기반 분석이 제한될 수 있습니다.")
         
         # 일반 CSV 파일 처리
         else:
-            df_cleaned = pd.read_csv(uploaded_file, parse_dates=["timestamp"])
+            # 먼저 컬럼명 확인
+            temp_df = pd.read_csv(uploaded_file, nrows=0)
+            uploaded_file.seek(0)  # 파일 포인터 되돌리기
+            
+            timestamp_cols = [col for col in temp_df.columns if 'time' in col.lower() or 'date' in col.lower()]
+            
+            if timestamp_cols:
+                df_cleaned = pd.read_csv(uploaded_file, parse_dates=timestamp_cols) 
+                if 'timestamp' not in df_cleaned.columns and timestamp_cols:
+                    df_cleaned = df_cleaned.rename(columns={timestamp_cols[0]: 'timestamp'})
+            else:
+                df_cleaned = pd.read_csv(uploaded_file)
+                st.warning("⚠️ 시간 관련 컬럼을 찾을 수 없습니다.")
         
         # 데이터가 성공적으로 로드된 경우
         if df_cleaned is not None:
-            df_cleaned = df_cleaned.sort_values("timestamp")
+            # timestamp 컬럼이 있는 경우에만 정렬
+            if 'timestamp' in df_cleaned.columns:
+                df_cleaned = df_cleaned.sort_values("timestamp")
+            else:
+                st.info("📋 업로드된 파일의 컬럼 목록: " + ", ".join(df_cleaned.columns.tolist()))
 
             MAX_ROWS = 5000
             df_small = df.copy()
@@ -123,22 +158,27 @@ if uploaded_file is not None:
                 if selected_col in df_small.columns:
                     y1 = pd.to_numeric(df_small[selected_col], errors='coerce')
                     st.write(f"정제 전 NaN 수: {y1.isna().sum()}")
+                    
+                    # timestamp가 있는 경우 시간축 사용, 없으면 인덱스 사용
+                    x_axis = df_small["timestamp"] if "timestamp" in df_small.columns else df_small.index
                     fig2.add_trace(go.Scatter(
-                        x=df_small["timestamp"], y=y1,
+                        x=x_axis, y=y1,
                         mode="lines", name="정제 전", line=dict(color="lightgray")
                     ))
 
                 y2 = pd.to_numeric(df_cleaned_small[selected_col], errors='coerce')
                 st.write(f"정제 후 NaN 수: {y2.isna().sum()}")
 
+                x_axis_cleaned = df_cleaned_small["timestamp"] if "timestamp" in df_cleaned_small.columns else df_cleaned_small.index
                 fig2.add_trace(go.Scatter(
-                    x=df_cleaned_small["timestamp"], y=y2,
+                    x=x_axis_cleaned, y=y2,
                     mode="lines+markers", name="정제 후", line=dict(color="green", width=2)
                 ))
 
                 fig2.update_layout(
                     title=f"정제 전후 `{selected_col}` 비교",
-                    xaxis_title="시간", yaxis_title=selected_col,
+                    xaxis_title="시간" if "timestamp" in df_cleaned_small.columns else "인덱스", 
+                    yaxis_title=selected_col,
                     height=500
                 )
 

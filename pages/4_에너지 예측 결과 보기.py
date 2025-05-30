@@ -77,7 +77,8 @@ if google_drive_url:
     if file_id:
         direct_url = get_direct_download_url(file_id)
         try:
-            df_input_data = pd.read_csv(direct_url)
+            df_input_data = pd.read_csv(direct_url, header=0)
+            df_input_data.columns = df_input_data.columns.str.strip()
             st.success("✅ Google Drive 파일에서 데이터를 성공적으로 불러왔습니다.")
         except Exception as e:
             st.error(f"❌ Google Drive에서 파일을 불러오는 데 실패했습니다: {e}")
@@ -128,7 +129,8 @@ if file_to_process or ('df_input_data' in locals() and df_input_data is not None
             file_path_for_reading = temp_file_path if temp_file_path else file_to_process
     
             encodings = ['utf-8', 'utf-8-sig', 'cp949', 'euc-kr']
-            df_temp = None
+            df_temp = pd.read_csv(file_path_for_reading, encoding=enc)
+            df_temp.columns = df_temp.columns.str.strip()
             for enc in encodings:
                 try:
                     df_temp = pd.read_csv(file_path_for_reading, encoding=enc)

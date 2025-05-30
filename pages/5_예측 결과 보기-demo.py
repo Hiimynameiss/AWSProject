@@ -66,7 +66,7 @@ def get_direct_download_url(file_id):
 uploaded_file_path_from_session = st.session_state.get('uploaded_file_path', None)
 uploaded_file_direct = st.file_uploader("예측을 위한 CSV 파일 업로드", type=['csv'])
 
-st.markdown("또는 👉 **Google Drive 공유 링크 입력**")
+st.write("또는 👉 **Google Drive 공유 링크 입력**")
 google_drive_url = st.text_input("🔗 Google Drive 공유 CSV 파일 URL", 
                                 placeholder="https://drive.google.com/file/d/.../view?usp=sharing",
                                 value="https://drive.google.com/file/d/18r04ZNRd_Fz58Ay_g-7uY-6XK5q_P6V6/view?usp=sharing")
@@ -174,7 +174,7 @@ if df_input_data is not None:
         st.error("모델에 입력할 데이터가 없습니다 (horizon 설정이 너무 큽니다). Horizon 값을 줄여주세요.")
         st.stop()
 
-    st.markdown("---")
+    st.write("---")
     st.subheader("🚀 추론 실행")
     
     # SageMaker 페이로드 구성
@@ -215,7 +215,7 @@ if df_input_data is not None:
 
     # 결과 분석 및 시각화
     if 'sagemaker_result' in st.session_state:
-        st.markdown("---")
+        st.write("---")
         st.subheader("📊 추론 결과 분석")
         
         sagemaker_result = st.session_state['sagemaker_result']
@@ -255,7 +255,7 @@ if df_input_data is not None:
             })
 
             # 1. ActivePower 예측 결과 시각화
-            st.markdown(f"#### 1. {TARGET_COLUMN} 예측 결과")
+            st.write(f"#### 1. {TARGET_COLUMN} 예측 결과")
             fig_power = go.Figure()
             fig_power.add_trace(go.Scatter(x=df_input_data[TIME_COLUMN], y=df_input_data[TARGET_COLUMN],
                                            mode='lines', name='실제값 (전체)', line=dict(color='blue')))
@@ -269,7 +269,7 @@ if df_input_data is not None:
             st.plotly_chart(fig_power, use_container_width=True)
 
             # 2. 전기 요금 및 탄소 배출량 예측 시각화
-            st.markdown("#### 2. 예측된 전기 요금 및 탄소 배출량")
+            st.write("#### 2. 예측된 전기 요금 및 탄소 배출량")
             df_predictions['predicted_bill (원)'] = df_predictions[f'predicted_{TARGET_COLUMN}'] * ELECTRICITY_RATE_KWH
             df_predictions['predicted_carbon (kgCO2)'] = df_predictions[f'predicted_{TARGET_COLUMN}'] * CARBON_COEFFICIENT_KWH
 
@@ -291,7 +291,7 @@ if df_input_data is not None:
             st.dataframe(df_predictions[[TIME_COLUMN, f'predicted_{TARGET_COLUMN}', 'predicted_bill (원)', 'predicted_carbon (kgCO2)']])
 
             # 3. MAE 정확도 수치화 / 시각화
-            st.markdown("#### 3. 모델 정확도 (MAE)")
+            st.write("#### 3. 모델 정확도 (MAE)")
             comparison_df = pd.merge(actual_df_for_mae[[TIME_COLUMN, TARGET_COLUMN]],
                                      df_predictions[[TIME_COLUMN, f'predicted_{TARGET_COLUMN}']],
                                      on=TIME_COLUMN, how='inner')
@@ -308,7 +308,7 @@ if df_input_data is not None:
                 fig_mae_gauge = go.Figure(go.Indicator(
                     mode="gauge+number",
                     value=mae,
-                    title={'text': f"MAE ({TARGET_COLUMN})<br><span style='font-size:0.8em;color:gray'>(작을수록 좋음)</span>"},
+                    title={'text': f"MAE ({TARGET_COLUMN}) - 작을수록 좋음"},
                     gauge={
                         'axis': {'range': [0, max_mae_gauge]},
                         'bar': {'color': "darkblue"},
